@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">GithubAPI</string>
+    <string name="max_follow_number">Max</string>
+    <string name="no_description_provided">No Description</string>
+    <string name="no_language_specified">No Language</string>
+    <string name="unknown">Unknown Time</string>
+</resources>
