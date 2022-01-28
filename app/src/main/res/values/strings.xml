@@ -4,4 +4,7 @@
     <string name="no_description_provided">No Description</string>
     <string name="no_language_specified">No Language</string>
     <string name="unknown">Unknown Time</string>
+    <string name="search_repository">Search Repository</string>
+    <string name="please_write_repository_name">Please write repository name</string>
+    <string name="no_search_result">No search result</string>
 </resources>
