@@ -7,4 +7,7 @@
     <string name="search_repository">Search Repository</string>
     <string name="please_write_repository_name">Please write repository name</string>
     <string name="no_search_result">No search result</string>
+    <string name="unexpected_error">Unexpected Error</string>
+    <string name="project_title">GitHubApi Project</string>
+    <string name="search">Search</string>
 </resources>

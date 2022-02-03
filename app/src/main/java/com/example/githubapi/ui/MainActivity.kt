@@ -10,9 +10,9 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
-
         initTitle()
         initMainFragment()
+        System.out.println("MainActivity : onCreate")
     }
 
     private fun initTitle() {
@@ -23,6 +23,7 @@ class MainActivity : AppCompatActivity() {
             .beginTransaction()
             .add(binding.FragmentContainer.id, SearchFragment.newInstance())
             .commit()
+        System.out.println("MainActivity : initFragment")
     }
     fun goToDetailFragment(ownerName : String, repoName : String) {
         supportFragmentManager

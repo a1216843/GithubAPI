@@ -2,9 +2,11 @@ package com.example.githubapi.ui.adapter
 
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
+import android.text.TextUtils
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import com.example.githubapi.R
 import com.example.githubapi.databinding.ItemSearchRepositoryBinding
 import com.example.githubapi.ui.model.RepoItem
@@ -36,10 +38,26 @@ class RepositoryAdapter : RecyclerView.Adapter<RepositoryAdapter.RepositoryHolde
                     .load(repo.owner.ownerUrl)
                     .placeholder(placeholder)
                     .into(holder.binding.ivProfile)
+
+                holder.binding.title.text = repo.title
+                holder.binding.language.text = if(TextUtils.isEmpty(repo.language))
+                    context.getText(R.string.no_language_specified)
+                else
+                    repo.language
             }
         }
     }
 
     override fun getItemCount() = items.size
+
+    fun setItems(items : List<RepoItem>) {
+        this.items.clear()
+        this.items.addAll(items)
+        notifyDataSetChanged()
+    }
+    fun clearItems() {
+        this.items.clear()
+        notifyDataSetChanged()
+    }
 
 }

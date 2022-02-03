@@ -2,8 +2,8 @@ package com.example.githubapi.ui.model
 
 import android.content.Context
 import android.text.TextUtils
-import android.text.format.DateUtils
 import com.example.githubapi.R
+import com.example.githubapi.utils.DateUtils
 import com.google.gson.annotations.SerializedName
 import java.lang.IllegalArgumentException
 import java.util.*
@@ -19,7 +19,7 @@ data class RepoModel(
     val description : String?,
     @SerializedName("language")
     val language : String?,
-    @SerializedName("update_at")
+    @SerializedName("updated_at")
     val updateAt : Date,
     @SerializedName("stargazers_count")
     val stars : Int
@@ -27,7 +27,7 @@ data class RepoModel(
     data class OwnerModel(
         @SerializedName("login")
         val login : String,
-        @SerializedName("avartar_url")
+        @SerializedName("avatar_url")
         val avatarUrl : String
     )
 }
@@ -51,7 +51,7 @@ fun RepoModel.mapToPresentation(context : Context) = RepoItem(
         language,
 
     updateAt = try {
-        TODO("시간으로 매핑해주기")
+       DateUtils.dateFormatToShow.format(updateAt)
     } catch (e: IllegalArgumentException) {
         context.resources.getString(R.string.unknown)
     },
