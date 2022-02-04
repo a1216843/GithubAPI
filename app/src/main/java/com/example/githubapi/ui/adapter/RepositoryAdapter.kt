@@ -4,18 +4,19 @@ import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.text.TextUtils
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.githubapi.R
 import com.example.githubapi.databinding.ItemSearchRepositoryBinding
+import com.example.githubapi.ui.MainActivity
 import com.example.githubapi.ui.model.RepoItem
 
 class RepositoryAdapter : RecyclerView.Adapter<RepositoryAdapter.RepositoryHolder>() {
 
     private var items : MutableList<RepoItem> = mutableListOf()
     private val placeholder = ColorDrawable(Color.GRAY)
-
     var onItemClick : ((repoItem : RepoItem) -> Unit)? = null
 
     override fun onCreateViewHolder(
@@ -38,10 +39,13 @@ class RepositoryAdapter : RecyclerView.Adapter<RepositoryAdapter.RepositoryHolde
                     .load(repo.owner.ownerUrl)
                     .placeholder(placeholder)
                     .into(holder.binding.ivProfile)
-
+                holder.itemView.setOnClickListener {
+                    val item = items[position]
+                    onItemClick?.invoke(item)
+                }
                 holder.binding.title.text = repo.title
                 holder.binding.language.text = if(TextUtils.isEmpty(repo.language))
-                    context.getText(R.string.no_language_specified)
+                        context.getText(R.string.no_language_specified)
                 else
                     repo.language
             }

@@ -8,24 +8,26 @@ import com.example.githubapi.databinding.ActivityMainBinding
 class MainActivity : AppCompatActivity() {
     val binding by lazy { ActivityMainBinding.inflate(layoutInflater) }
     override fun onCreate(savedInstanceState: Bundle?) {
+        System.out.println("MainActivity : onCreate")
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
         initTitle()
         initMainFragment()
-        System.out.println("MainActivity : onCreate")
+
     }
 
     private fun initTitle() {
         title = getString(R.string.search_repository)
     }
     private fun initMainFragment() {
+        System.out.println("MainActivity : initFragment")
         supportFragmentManager
             .beginTransaction()
             .add(binding.FragmentContainer.id, SearchFragment.newInstance())
             .commit()
-        System.out.println("MainActivity : initFragment")
     }
     fun goToDetailFragment(ownerName : String, repoName : String) {
+        System.out.println("MainActivity : goToDetailFragment")
         supportFragmentManager
             .beginTransaction()
             .replace(binding.FragmentContainer.id, DetailFragment.newInstance(ownerName, repoName))

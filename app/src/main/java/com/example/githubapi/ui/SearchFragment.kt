@@ -1,5 +1,6 @@
 package com.example.githubapi.ui
 
+import android.content.Context
 import android.os.Bundle
 import android.view.KeyEvent
 import android.view.LayoutInflater
@@ -9,11 +10,17 @@ import android.view.inputmethod.EditorInfo
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.LifecycleObserver
+import androidx.lifecycle.OnLifecycleEvent
+import androidx.recyclerview.widget.RecyclerView
 import com.example.githubapi.R
 import com.example.githubapi.data.api.ApiProvider
 import com.example.githubapi.databinding.FragmentDetailBinding
 import com.example.githubapi.databinding.FragmentSearchBinding
 import com.example.githubapi.ui.adapter.RepositoryAdapter
+import com.example.githubapi.ui.model.RepoItem
 import com.example.githubapi.ui.model.RepoSearchResponse
 import com.example.githubapi.ui.model.mapToPresentation
 import com.example.githubapi.utils.AppUtils
@@ -27,7 +34,6 @@ class SearchFragment : Fragment() {
         fun newInstance() = SearchFragment()
     }
 
-    // TODO : RepoAdapter
     private val repoAdapter by lazy {
         RepositoryAdapter().apply{
             onItemClick = {
@@ -50,14 +56,32 @@ class SearchFragment : Fragment() {
         System.out.println("SearchFragment : onCreateView")
         return binding.root
     }
+    private val lifecycleObserver = LifecycleEventObserver{ source, event ->
+        if(event==Lifecycle.Event.ON_CREATE) {
+            onTest()
+        }
+    }
+    override fun onAttach(context: Context) {
+        System.out.println("SearchFragment : onAttach")
+        super.onAttach(context)
+        activity?.lifecycle?.addObserver(lifecycleObserver)
+    }
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        System.out.println("SearchFragment : onViewCreated")
+        super.onViewCreated(view, savedInstanceState)
+    }
+    fun onTest(){
+        System.out.println("SearchFragment : onTest")
+    }
+
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
+        System.out.println("SearchFragment : onActivityCreated")
         super.onActivityCreated(savedInstanceState)
 
         initRecyclerView()
         initEditText()
         initButton()
-        System.out.println("SearchFragment : onActivityCreated")
     }
     private fun initRecyclerView() {
         binding.listSearchRepository.adapter = repoAdapter

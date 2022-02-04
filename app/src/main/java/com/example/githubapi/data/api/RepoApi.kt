@@ -13,7 +13,7 @@ interface RepoApi {
     fun searchRepository(@Query("q") query: String) : Call<RepoSearchResponse>
 
     // repo의 정보 검색
-    @GET("repos//")
+    @GET("repos/{owner}/{name}")
     fun getRepository(
         @Path("owner") ownerLogin : String,
         @Path("name") repoName : String

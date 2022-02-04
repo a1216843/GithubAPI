@@ -10,4 +10,8 @@
     <string name="unexpected_error">Unexpected Error</string>
     <string name="project_title">GitHubApi Project</string>
     <string name="search">Search</string>
+    <string name="follower">Follower</string>
+    <string name="following">Following</string>
+    <string name="language">Language</string>
+    <string name="description">Description</string>
 </resources>
