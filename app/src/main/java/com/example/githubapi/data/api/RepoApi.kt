@@ -1,6 +1,6 @@
 package com.example.githubapi.data.api
 
-import com.example.githubapi.ui.model.RepoModel
+import com.example.githubapi.data.model.RepoModel
 import com.example.githubapi.ui.model.RepoSearchResponse
 import retrofit2.Call
 import retrofit2.http.GET

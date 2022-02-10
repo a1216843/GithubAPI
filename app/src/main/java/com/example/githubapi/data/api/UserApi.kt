@@ -1,6 +1,6 @@
 package com.example.githubapi.data.api
 
-import com.example.githubapi.ui.model.UserModel
+import com.example.githubapi.data.model.UserModel
 import retrofit2.Call
 import retrofit2.http.GET
 import retrofit2.http.Path

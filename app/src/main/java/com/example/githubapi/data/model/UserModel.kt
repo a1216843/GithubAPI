@@ -1,7 +1,8 @@
-package com.example.githubapi.ui.model
+package com.example.githubapi.data.model
 
 import android.content.Context
 import com.example.githubapi.R
+import com.example.githubapi.ui.model.UserItem
 import com.google.gson.annotations.SerializedName
 
 data class UserModel(
@@ -37,7 +38,7 @@ data class UserModel(
     val profileImgUrl : String
 )
 
-fun UserModel.mapToView(context : Context) = UserItem(
+fun UserModel.mapToPresentation(context : Context) = UserItem(
     followers = followers.let {
         if(it > 100) context.getString(R.string.max_follow_number) else it.toString()
     },

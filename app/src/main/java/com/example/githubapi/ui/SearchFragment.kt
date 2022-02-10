@@ -16,13 +16,16 @@ import androidx.lifecycle.LifecycleObserver
 import androidx.lifecycle.OnLifecycleEvent
 import androidx.recyclerview.widget.RecyclerView
 import com.example.githubapi.R
+import com.example.githubapi.data.BaseResponse
 import com.example.githubapi.data.api.ApiProvider
+import com.example.githubapi.data.model.mapToPresentation
 import com.example.githubapi.databinding.FragmentDetailBinding
 import com.example.githubapi.databinding.FragmentSearchBinding
+import com.example.githubapi.repository.RepoRepository
+import com.example.githubapi.repository.RepoRepositoryImpl
 import com.example.githubapi.ui.adapter.RepositoryAdapter
 import com.example.githubapi.ui.model.RepoItem
 import com.example.githubapi.ui.model.RepoSearchResponse
-import com.example.githubapi.ui.model.mapToPresentation
 import com.example.githubapi.utils.AppUtils
 import retrofit2.Call
 import retrofit2.Callback
@@ -44,8 +47,11 @@ class SearchFragment : Fragment() {
             }
         }
     }
-    private val repoApi = ApiProvider.RepoApi
-    private var repoCall : Call<RepoSearchResponse>? = null
+
+
+//    private val repoApi = ApiProvider.RepoApi
+//    private var repoCall : Call<RepoSearchResponse>? = null
+    private val repoRepository : RepoRepository = RepoRepositoryImpl(ApiProvider.RepoApi, ApiProvider.UserApi)
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -53,27 +59,8 @@ class SearchFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         binding = FragmentSearchBinding.inflate(inflater, container, false)
-        System.out.println("SearchFragment : onCreateView")
         return binding.root
     }
-    private val lifecycleObserver = LifecycleEventObserver{ source, event ->
-        if(event==Lifecycle.Event.ON_CREATE) {
-            onTest()
-        }
-    }
-    override fun onAttach(context: Context) {
-        System.out.println("SearchFragment : onAttach")
-        super.onAttach(context)
-        activity?.lifecycle?.addObserver(lifecycleObserver)
-    }
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        System.out.println("SearchFragment : onViewCreated")
-        super.onViewCreated(view, savedInstanceState)
-    }
-    fun onTest(){
-        System.out.println("SearchFragment : onTest")
-    }
-
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         System.out.println("SearchFragment : onActivityCreated")
@@ -114,37 +101,33 @@ class SearchFragment : Fragment() {
             Toast.makeText(activity, R.string.please_write_repository_name, Toast.LENGTH_SHORT).show()
         }
         else {
-            hideKeyboard()
-            clearResults()
-            hideError()
-            showProgress()
-
-            repoCall = repoApi.searchRepository(query)
-            repoCall?.enqueue(object : Callback<RepoSearchResponse> {
-                override fun onResponse(
-                    call: Call<RepoSearchResponse>,
-                    response: Response<RepoSearchResponse>
-                ) {
-                    hideProgress()
-
-                    val body = response.body()
-                    if(response.isSuccessful && null != body) {
-                        with(repoAdapter){
-                            setItems(body.items.map{ it.mapToPresentation(requireContext()) })
-                        }
-
-                        if(0 == body.totalCount) {
-                            showError(getString(R.string.no_search_result))
-                        }
+            repoRepository.searchRepository(query, object : BaseResponse<RepoSearchResponse> {
+                override fun onSuccess(data: RepoSearchResponse) {
+                    with(repoAdapter) {
+                        setItems(data.items.map{ it.mapToPresentation(requireContext()) })
                     }
-                    else {
-                        showError(response.message())
+                    if (0 == data.totalCount) {
+                        showError(getString(R.string.no_search_result))
                     }
                 }
 
-                override fun onFailure(call: Call<RepoSearchResponse>, t: Throwable) {
+                override fun onFail(description: String) {
+                    showError(description)
+                }
+
+                override fun onError(throwable: Throwable) {
+                    showError(throwable.message)
+                }
+
+                override fun onLoading() {
+                    hideKeyboard()
+                    clearResults()
+                    hideError()
+                    showProgress()
+                }
+
+                override fun onLoaded() {
                     hideProgress()
-                    showError(t.message)
                 }
             })
         }
@@ -173,11 +156,6 @@ class SearchFragment : Fragment() {
             text = ""
             visibility = View.GONE
         }
-    }
-
-    override fun onStop() {
-        repoCall?.cancel()
-        super.onStop()
     }
 
 

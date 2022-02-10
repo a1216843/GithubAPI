@@ -11,6 +11,9 @@ import androidx.fragment.app.Fragment
 import com.bumptech.glide.Glide
 import com.example.githubapi.R
 import com.example.githubapi.data.api.ApiProvider
+import com.example.githubapi.data.model.RepoModel
+import com.example.githubapi.data.model.UserModel
+import com.example.githubapi.data.model.mapToPresentation
 import com.example.githubapi.databinding.FragmentDetailBinding
 import com.example.githubapi.ui.model.*
 import retrofit2.Call
@@ -106,7 +109,7 @@ class DetailFragment : Fragment() {
 
                 val body = response.body()
                 if(response.isSuccessful && null != body) {
-                    setUserData(body.mapToView(requireContext()))
+                    setUserData(body.mapToPresentation(requireContext()))
                 }
                 else {
                     showError(response.message())

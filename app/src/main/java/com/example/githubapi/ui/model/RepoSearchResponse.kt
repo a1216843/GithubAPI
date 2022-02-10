@@ -1,5 +1,6 @@
 package com.example.githubapi.ui.model
 
+import com.example.githubapi.data.model.RepoModel
 import com.google.gson.annotations.SerializedName
 
 data class RepoSearchResponse(

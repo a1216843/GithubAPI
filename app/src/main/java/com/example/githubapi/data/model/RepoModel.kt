@@ -1,8 +1,9 @@
-package com.example.githubapi.ui.model
+package com.example.githubapi.data.model
 
 import android.content.Context
 import android.text.TextUtils
 import com.example.githubapi.R
+import com.example.githubapi.ui.model.RepoItem
 import com.example.githubapi.utils.DateUtils
 import com.google.gson.annotations.SerializedName
 import java.lang.IllegalArgumentException
