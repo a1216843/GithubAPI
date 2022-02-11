@@ -10,11 +10,15 @@ import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import com.bumptech.glide.Glide
 import com.example.githubapi.R
+import com.example.githubapi.data.BaseResponse
 import com.example.githubapi.data.api.ApiProvider
+import com.example.githubapi.data.model.RepoDetailModel
 import com.example.githubapi.data.model.RepoModel
 import com.example.githubapi.data.model.UserModel
 import com.example.githubapi.data.model.mapToPresentation
 import com.example.githubapi.databinding.FragmentDetailBinding
+import com.example.githubapi.repository.RepoRepository
+import com.example.githubapi.repository.RepoRepositoryImpl
 import com.example.githubapi.ui.model.*
 import retrofit2.Call
 import retrofit2.Callback
@@ -34,10 +38,11 @@ class DetailFragment : Fragment() {
         }
     }
 
-    private val repoApi = ApiProvider.RepoApi
-    private val userApi = ApiProvider.UserApi
-    private var repoCall : Call<RepoModel>? = null
-    private var userCall : Call<UserModel>? = null
+    private val repoRepository : RepoRepository = RepoRepositoryImpl(ApiProvider.RepoApi, ApiProvider.UserApi)
+//    private val repoApi = ApiProvider.RepoApi
+//    private val userApi = ApiProvider.UserApi
+//    private var repoCall : Call<RepoModel>? = null
+//    private var userCall : Call<UserModel>? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -51,82 +56,60 @@ class DetailFragment : Fragment() {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-
         val ownerName = arguments?.getString(ARGUMENT_OWNER_NAME) ?: throw IllegalArgumentException(
             "No owner name info exists in extras"
         )
         val repo = arguments?.getString(ARGUMENT_REPO) ?: throw IllegalArgumentException(
             "No repo info exists in extras"
         )
-
-        loadRepoData(ownerName, repo)
-        loadUserData(ownerName)
+        getDetailRepository(ownerName, repo)
     }
 
-    private fun loadRepoData(ownerName: String, repo : String) {
-        hideProgress()
-        showProgress()
-
-        repoCall = repoApi.getRepository(ownerName, repo)
-        repoCall?.enqueue(object : Callback<RepoModel> {
-            override fun onResponse(call: Call<RepoModel>, response: Response<RepoModel>) {
-                hideProgress()
-
-                val body = response.body()
-                if(response.isSuccessful && null != body) {
-                    setRepoData(body.mapToPresentation(requireContext()))
+    private fun getDetailRepository(ownerName: String, repo : String) {
+        repoRepository.getDetailRepository(ownerName, repo, object : BaseResponse<RepoDetailModel> {
+            override fun onSuccess(data: RepoDetailModel) {
+                if(null == data) {
+                    showError("No search result")
                 }
-                else {
-                    showError(response.message())
-                }
+                setItem(data.mapToPresentation(requireContext()))
             }
 
-            override fun onFailure(call: Call<RepoModel>, t: Throwable) {
-                hideProgress()
-                showError(t.message)
+            override fun onFail(description: String) {
+                showError(description)
             }
+
+            override fun onError(throwable: Throwable) {
+                showError(throwable.message)
+            }
+
+            override fun onLoading() {
+                hideError()
+                showProgress()
+            }
+
+            override fun onLoaded() {
+                hideProgress()
+            }
+
         })
     }
 
-    private fun setRepoData(repoItem: RepoItem) {
+    private fun setItem(repoDetailItem: RepoDetailItem) {
         Glide.with(requireContext())
-            .load(repoItem.owner.ownerUrl)
+            .load(repoDetailItem.ownerUrl)
             .placeholder(ColorDrawable(Color.GRAY))
             .error(ColorDrawable(Color.RED))
             .into(binding.ivProfile)
 
-        binding.tvTitle.text = repoItem.title
-        binding.tvStars.text = repoItem.stars
-        binding.tvDescription.text = repoItem.description
-        binding.tvLanguage.text = repoItem.language
+        binding.tvTitle.text = repoDetailItem.title
+        binding.tvStars.text = repoDetailItem.stars
+        binding.tvDescription.text = repoDetailItem.description
+        binding.tvLanguage.text = repoDetailItem.language
+        binding.tvFollower.text = repoDetailItem.followers
+        binding.tvFollowing.text = repoDetailItem.following
     }
 
-    private fun loadUserData(userName : String){
-        userCall = userApi.getUser(userName)
-        userCall?.enqueue(object : Callback<UserModel> {
-            override fun onResponse(call: Call<UserModel>, response: Response<UserModel>) {
-                hideProgress()
 
-                val body = response.body()
-                if(response.isSuccessful && null != body) {
-                    setUserData(body.mapToPresentation(requireContext()))
-                }
-                else {
-                    showError(response.message())
-                }
-            }
-
-            override fun onFailure(call: Call<UserModel>, t: Throwable) {
-                hideProgress()
-                showError(t.message)
-            }
-        })
-    }
-
-    private fun setUserData(userItem: UserItem) {
-        binding.tvFollower.text = userItem.followers
-        binding.tvFollowing.text = userItem.following
-    }
 
     private fun showError(message : String?) {
         with(binding.tvMessage) {
@@ -146,12 +129,6 @@ class DetailFragment : Fragment() {
     }
     private fun hideProgress() {
         binding.pbLoading.visibility = View.GONE
-    }
-
-    override fun onStop() {
-        repoCall?.cancel()
-        userCall?.cancel()
-        super.onStop()
     }
 
 

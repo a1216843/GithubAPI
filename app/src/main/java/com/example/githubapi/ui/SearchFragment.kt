@@ -51,6 +51,7 @@ class SearchFragment : Fragment() {
 
 //    private val repoApi = ApiProvider.RepoApi
 //    private var repoCall : Call<RepoSearchResponse>? = null
+    // 사실 View에선 Data Source가 remote인지 local인지도 몰라야하므로 ApiProvider의 api를 매개변수로 넘겨주는 과정도 View에서 분리해야 함
     private val repoRepository : RepoRepository = RepoRepositoryImpl(ApiProvider.RepoApi, ApiProvider.UserApi)
 
     override fun onCreateView(

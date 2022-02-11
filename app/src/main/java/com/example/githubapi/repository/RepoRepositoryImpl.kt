@@ -43,6 +43,7 @@ class RepoRepositoryImpl(private val repoApi: RepoApi, private val userApi: User
         repo: String,
         callback: BaseResponse<RepoDetailModel>
     ) {
+        callback.onLoading()
         repoApi.getRepository(user, repo)
             .enqueue(object : Callback<RepoModel> {
                 override fun onResponse(call: Call<RepoModel>, response: Response<RepoModel>) {
