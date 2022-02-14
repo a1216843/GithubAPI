@@ -12,7 +12,7 @@ import java.util.*
 data class RepoDetailModel(
     val title : String,
     val repoName : String,
-    val ownerName : String,
+    val ownerName : String?,
     val ownerUrl : String,
     val followers : Int,
     val following : Int,
@@ -25,7 +25,10 @@ data class RepoDetailModel(
 fun RepoDetailModel.mapToPresentation(context : Context) = RepoDetailItem(
     title = title,
     repoName = repoName,
-    ownerName = ownerName,
+    ownerName = ownerName.let {
+        if(it == null) "null"
+        else ownerName!!
+    },
     ownerUrl = ownerUrl,
     followers = followers.let {
         if(it > 100) context.getString(R.string.max_follow_number)

@@ -27,6 +27,7 @@ import com.example.githubapi.ui.adapter.RepositoryAdapter
 import com.example.githubapi.ui.model.RepoItem
 import com.example.githubapi.ui.model.RepoSearchResponse
 import com.example.githubapi.utils.AppUtils
+import io.reactivex.disposables.CompositeDisposable
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -37,9 +38,12 @@ class SearchFragment : Fragment() {
         fun newInstance() = SearchFragment()
     }
 
+    private val compositeDisposable = CompositeDisposable()
+
     private val repoAdapter by lazy {
         RepositoryAdapter().apply{
             onItemClick = {
+                System.out.println("ownerName : ${it.owner.ownerName}")
                 (requireActivity() as MainActivity).goToDetailFragment(
                     it.owner.ownerName,
                     it.repoName
@@ -130,7 +134,9 @@ class SearchFragment : Fragment() {
                 override fun onLoaded() {
                     hideProgress()
                 }
-            })
+            }).also {
+                compositeDisposable.add(it)
+            }
         }
     }
 
@@ -157,6 +163,13 @@ class SearchFragment : Fragment() {
             text = ""
             visibility = View.GONE
         }
+    }
+
+    override fun onStop() {
+        // 만약 통신중일 때 화면이 닫힌다면 통신 또한 종료되어야 한다.
+        // 따라서 onStop 메서드가 호출될 때 CompositeDisposable에 있는 객체들을 모두 dispose하여 메모리 누수, 불필요한 데이터 호출등을 막을 수 있다.
+        compositeDisposable.dispose()
+        super.onStop()
     }
 
 

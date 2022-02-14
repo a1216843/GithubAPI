@@ -27,7 +27,7 @@ data class UserModel(
     @SerializedName("login")
     val login : String,
     @SerializedName("name")
-    val name : String,
+    val name : String?,
     @SerializedName("public_gists")
     val publicGists : Int,
     @SerializedName("public_repos")

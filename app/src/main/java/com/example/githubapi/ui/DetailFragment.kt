@@ -20,6 +20,7 @@ import com.example.githubapi.databinding.FragmentDetailBinding
 import com.example.githubapi.repository.RepoRepository
 import com.example.githubapi.repository.RepoRepositoryImpl
 import com.example.githubapi.ui.model.*
+import io.reactivex.disposables.CompositeDisposable
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -38,11 +39,8 @@ class DetailFragment : Fragment() {
         }
     }
 
+    private val compositeDisposable = CompositeDisposable()
     private val repoRepository : RepoRepository = RepoRepositoryImpl(ApiProvider.RepoApi, ApiProvider.UserApi)
-//    private val repoApi = ApiProvider.RepoApi
-//    private val userApi = ApiProvider.UserApi
-//    private var repoCall : Call<RepoModel>? = null
-//    private var userCall : Call<UserModel>? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -91,7 +89,9 @@ class DetailFragment : Fragment() {
                 hideProgress()
             }
 
-        })
+        }).also {
+            compositeDisposable.add(it)
+        }
     }
 
     private fun setItem(repoDetailItem: RepoDetailItem) {
@@ -129,6 +129,11 @@ class DetailFragment : Fragment() {
     }
     private fun hideProgress() {
         binding.pbLoading.visibility = View.GONE
+    }
+
+    override fun onStop() {
+        compositeDisposable.dispose()
+        super.onStop()
     }
 
 
