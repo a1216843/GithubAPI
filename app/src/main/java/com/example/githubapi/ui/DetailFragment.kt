@@ -7,6 +7,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.os.bundleOf
+import androidx.databinding.DataBindingUtil
+import androidx.databinding.Observable
 import androidx.fragment.app.Fragment
 import com.bumptech.glide.Glide
 import com.example.githubapi.R
@@ -20,6 +22,7 @@ import com.example.githubapi.databinding.FragmentDetailBinding
 import com.example.githubapi.repository.RepoRepository
 import com.example.githubapi.repository.RepoRepositoryImpl
 import com.example.githubapi.ui.model.*
+import com.example.githubapi.ui.viewmodel.DetailViewModel
 import io.reactivex.disposables.CompositeDisposable
 import retrofit2.Call
 import retrofit2.Callback
@@ -41,6 +44,9 @@ class DetailFragment : Fragment() {
 
     private val compositeDisposable = CompositeDisposable()
     private val repoRepository : RepoRepository = RepoRepositoryImpl(ApiProvider.RepoApi, ApiProvider.UserApi)
+    private val detailModel by lazy {
+        DetailViewModel(repoRepository, compositeDisposable)
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -48,7 +54,8 @@ class DetailFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         System.out.println("DetailFragment : onCreateView")
-        binding = FragmentDetailBinding.inflate(inflater, container, false)
+        binding = DataBindingUtil.inflate(inflater, R.layout.fragment_detail, container, false)
+        binding.model = detailModel
         return binding.root
     }
 
@@ -60,38 +67,18 @@ class DetailFragment : Fragment() {
         val repo = arguments?.getString(ARGUMENT_REPO) ?: throw IllegalArgumentException(
             "No repo info exists in extras"
         )
-        getDetailRepository(ownerName, repo)
+        detailModel.getDetailRepository(requireContext(), ownerName, repo)
+        initObserve()
     }
 
-    private fun getDetailRepository(ownerName: String, repo : String) {
-        repoRepository.getDetailRepository(ownerName, repo, object : BaseResponse<RepoDetailModel> {
-            override fun onSuccess(data: RepoDetailModel) {
-                if(null == data) {
-                    showError("No search result")
+    private fun initObserve() {
+        detailModel.item.addOnPropertyChangedCallback(object : Observable.OnPropertyChangedCallback() {
+            override fun onPropertyChanged(sender: Observable?, propertyId: Int) {
+                detailModel.item.get()?.let {
+                    setItem(it)
                 }
-                setItem(data.mapToPresentation(requireContext()))
             }
-
-            override fun onFail(description: String) {
-                showError(description)
-            }
-
-            override fun onError(throwable: Throwable) {
-                showError(throwable.message)
-            }
-
-            override fun onLoading() {
-                hideError()
-                showProgress()
-            }
-
-            override fun onLoaded() {
-                hideProgress()
-            }
-
-        }).also {
-            compositeDisposable.add(it)
-        }
+        })
     }
 
     private fun setItem(repoDetailItem: RepoDetailItem) {
@@ -107,28 +94,6 @@ class DetailFragment : Fragment() {
         binding.tvLanguage.text = repoDetailItem.language
         binding.tvFollower.text = repoDetailItem.followers
         binding.tvFollowing.text = repoDetailItem.following
-    }
-
-
-
-    private fun showError(message : String?) {
-        with(binding.tvMessage) {
-            text = message ?: context.getString(R.string.unexpected_error)
-            visibility = View.VISIBLE
-        }
-    }
-    private fun hideError() {
-        with(binding.tvMessage) {
-            text = ""
-            visibility = View.GONE
-        }
-    }
-    private fun showProgress() {
-        binding.tvMessage.visibility = View.GONE
-        binding.pbLoading.visibility = View.VISIBLE
-    }
-    private fun hideProgress() {
-        binding.pbLoading.visibility = View.GONE
     }
 
     override fun onStop() {

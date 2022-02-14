@@ -9,6 +9,8 @@ import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.widget.TextView
 import android.widget.Toast
+import androidx.databinding.DataBindingUtil
+import androidx.databinding.Observable
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -26,6 +28,7 @@ import com.example.githubapi.repository.RepoRepositoryImpl
 import com.example.githubapi.ui.adapter.RepositoryAdapter
 import com.example.githubapi.ui.model.RepoItem
 import com.example.githubapi.ui.model.RepoSearchResponse
+import com.example.githubapi.ui.viewmodel.SearchViewModel
 import com.example.githubapi.utils.AppUtils
 import io.reactivex.disposables.CompositeDisposable
 import retrofit2.Call
@@ -33,7 +36,6 @@ import retrofit2.Callback
 import retrofit2.Response
 
 class SearchFragment : Fragment() {
-    lateinit var binding : FragmentSearchBinding
     companion object {
         fun newInstance() = SearchFragment()
     }
@@ -52,18 +54,21 @@ class SearchFragment : Fragment() {
         }
     }
 
-
-//    private val repoApi = ApiProvider.RepoApi
-//    private var repoCall : Call<RepoSearchResponse>? = null
-    // 사실 View에선 Data Source가 remote인지 local인지도 몰라야하므로 ApiProvider의 api를 매개변수로 넘겨주는 과정도 View에서 분리해야 함
     private val repoRepository : RepoRepository = RepoRepositoryImpl(ApiProvider.RepoApi, ApiProvider.UserApi)
+
+    private val searchModel by lazy {
+        SearchViewModel(repoRepository, compositeDisposable)
+    }
+
+    private lateinit var binding : FragmentSearchBinding
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        binding = FragmentSearchBinding.inflate(inflater, container, false)
+        binding = DataBindingUtil.inflate(inflater, R.layout.fragment_search, container, false)
+        binding.model = searchModel
         return binding.root
     }
 
@@ -73,7 +78,7 @@ class SearchFragment : Fragment() {
 
         initRecyclerView()
         initEditText()
-        initButton()
+        initObserve()
     }
     private fun initRecyclerView() {
         binding.listSearchRepository.adapter = repoAdapter
@@ -84,7 +89,7 @@ class SearchFragment : Fragment() {
                when(actionId) {
                    EditorInfo.IME_ACTION_SEARCH -> {
                        val query = view?.text.toString()
-                       searchRepository(query)
+                       searchModel.searchRepository(requireContext(), query)
                        return true
                    }
                    else -> {
@@ -94,75 +99,14 @@ class SearchFragment : Fragment() {
             }
         })
     }
-    private fun initButton() {
-        binding.btnSearch.setOnClickListener {
-            val query = binding.etSearch.text.toString()
-            searchRepository(query)
-        }
-    }
-
-    private fun searchRepository(query : String) {
-        if(query.isEmpty()) {
-            Toast.makeText(activity, R.string.please_write_repository_name, Toast.LENGTH_SHORT).show()
-        }
-        else {
-            repoRepository.searchRepository(query, object : BaseResponse<RepoSearchResponse> {
-                override fun onSuccess(data: RepoSearchResponse) {
-                    with(repoAdapter) {
-                        setItems(data.items.map{ it.mapToPresentation(requireContext()) })
-                    }
-                    if (0 == data.totalCount) {
-                        showError(getString(R.string.no_search_result))
-                    }
+    private fun initObserve() {
+        searchModel.items.addOnPropertyChangedCallback(object : Observable.OnPropertyChangedCallback() {
+            override fun onPropertyChanged(sender: Observable?, propertyId: Int) {
+                searchModel.items.get()?.let {
+                    repoAdapter.setItems(it)
                 }
-
-                override fun onFail(description: String) {
-                    showError(description)
-                }
-
-                override fun onError(throwable: Throwable) {
-                    showError(throwable.message)
-                }
-
-                override fun onLoading() {
-                    hideKeyboard()
-                    clearResults()
-                    hideError()
-                    showProgress()
-                }
-
-                override fun onLoaded() {
-                    hideProgress()
-                }
-            }).also {
-                compositeDisposable.add(it)
             }
-        }
-    }
-
-    private fun hideKeyboard() {
-        AppUtils.hideSoftKeyBoard(requireActivity())
-    }
-    private fun clearResults() {
-        repoAdapter.clearItems()
-    }
-    private fun showProgress() {
-        binding.pbLoading.visibility = View.VISIBLE
-    }
-    private fun hideProgress() {
-        binding.pbLoading.visibility = View.GONE
-    }
-    private fun showError(message : String?) {
-        with(binding.tvMessage) {
-            text = message ?: context.getString(R.string.unexpected_error)
-            visibility = View.VISIBLE
-        }
-    }
-    private fun hideError() {
-        with(binding.tvMessage) {
-            text = ""
-            visibility = View.GONE
-        }
+        })
     }
 
     override fun onStop() {
